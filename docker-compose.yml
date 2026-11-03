@@ -1,0 +1,29 @@
+
+services:
+  inventory-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: inventory-orchestrator-api
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      DATABASE_URL: sqlite+aiosqlite:////data/enterprise_inventory.db
+      API_KEY_SECRET: ${API_KEY_SECRET:-local-docker-test-key}
+
+    volumes:
+      - inventory_data:/data
+
+    # Initialize tables and seed sample data before starting FastAPI
+    command:
+      - sh
+      - -c
+      - python seed.py && exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+    restart: unless-stopped
+
+volumes:
+  inventory_data:
